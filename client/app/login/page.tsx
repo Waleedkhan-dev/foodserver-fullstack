@@ -9,6 +9,10 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Fragment } from 'react/jsx-runtime';
 import SectionHeader from '@/components/common/Breadcrumb';
+import { userLogin } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
+import { useMutation } from '@tanstack/react-query';
 
 const RegisterSchema = z.object({
   password: z
@@ -23,6 +27,7 @@ const RegisterSchema = z.object({
 type RegisterFormType = z.infer<typeof RegisterSchema>;
 
 const LoginSection = () => {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -30,9 +35,19 @@ const LoginSection = () => {
   } = useForm<RegisterFormType>({
     resolver: zodResolver(RegisterSchema),
   });
+  const muatation = useMutation({
+    mutationFn: (data: RegisterFormType) => userLogin(data),
+    onSuccess: () => {
+      toast.success('Registered successfully!');
+      router.push('/');
+    },
+    onError: () => {
+      toast.error('Registration failed or user already exists!');
+    },
+  });
 
   const onSubmit = (data: RegisterFormType) => {
-    console.log('Form Submitted ', data);
+    muatation.mutate(data);
   };
 
   return (

@@ -1,29 +1,29 @@
 'use client';
 
+import { Fragment } from 'react';
 import Image from 'next/image';
-import registerImage from '../../public/imges/register.png';
-import Input from '@/components/Input';
 import Link from 'next/link';
-import { useForm } from 'react-hook-form';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Fragment } from 'react/jsx-runtime';
+import { useMutation } from '@tanstack/react-query';
+import { toast } from 'react-toastify';
+
+import Input from '@/components/Input';
 import SectionHeader from '@/components/common/Breadcrumb';
+import registerImage from '../../public/imges/register.png';
+import { registerUser, RegisterPayload } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
 
 const RegisterSchema = z.object({
   firstName: z.string().min(2, 'First name is required'),
-  password: z
-    .string()
-    .nonempty('password is required is required')
-    .min(6, 'password must be 6 charactur')
-    .max(12, 'password is not greater then 12 charcture'),
   lastName: z.string().min(2, 'Last name is required'),
   email: z.string().email('Please enter a valid email'),
-  phone: z
+  password: z
     .string()
-    .min(10, 'Enter valid phone number')
-    .min(11, 'phone number msut be 11 charactur')
-    .max(11, 'password not be greater then 11 cahr'),
+    .min(6, 'Password must be at least 6 characters')
+    .max(12, 'Password cannot exceed 12 characters'),
+  phone: z.string().min(11, 'Phone number must be 11 characters').max(11),
   address: z.string().min(5, 'Address is required'),
   city: z.string().min(2, 'City is required'),
   postCode: z.string().min(3, 'Post code required'),
@@ -34,6 +34,8 @@ const RegisterSchema = z.object({
 type RegisterFormType = z.infer<typeof RegisterSchema>;
 
 const RegisterPage = () => {
+  const router = useRouter();
+
   const {
     register,
     handleSubmit,
@@ -42,22 +44,34 @@ const RegisterPage = () => {
     resolver: zodResolver(RegisterSchema),
   });
 
-  const onSubmit = (data: RegisterFormType) => {
-    console.log('Form Submitted ', data);
+  const mutation = useMutation({
+    mutationFn: (data: RegisterPayload) => registerUser(data),
+    onSuccess: () => {
+      toast.success('Registered successfully!');
+      router.push('/');
+    },
+    onError: () => {
+      toast.error('Registration failed or user already exists!');
+    },
+  });
+
+  const onSubmit: SubmitHandler<RegisterFormType> = (data) => {
+    mutation.mutate(data);
   };
 
   return (
     <Fragment>
       <SectionHeader title='Register' routeText='Home - Register' />
-      <div className='flex justify-center items-center min-h-screen px-4 sm:px-6 md:px-10 lg:px-10 '>
+
+      <div className='flex justify-center items-center min-h-screen px-4 sm:px-6 md:px-10 lg:px-10'>
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className='bg-white border border-gray-100 p-6 sm:p-8 md:p-10 lg:p-12 rounded-lg  w-full max-w-md sm:max-w-lg md:max-w-xl space-y-3'
+          className='bg-white border border-gray-100 p-6 sm:p-8 md:p-10 lg:p-12 rounded-lg w-full max-w-md sm:max-w-lg md:max-w-xl space-y-3'
         >
-          <div className='flex items-center  justify-center '>
+          <div className='flex items-center justify-center gap-4'>
             <Image src={registerImage} alt='logo' width={120} height={120} />
-            <h1 className='font-foodMatter font-normal text-[24px] leading-[18.2px] tracking-[0.48px] align-middle'>
-              frouter
+            <h1 className='font-foodMatter font-normal text-[24px] leading-[18.2px] tracking-[0.48px]'>
+              Frouter
             </h1>
           </div>
 
@@ -111,11 +125,16 @@ const RegisterPage = () => {
               <p className='text-red-500 text-sm'>{errors.address.message}</p>
             )}
           </div>
+
           <div>
-            <label>password *</label>
-            <Input placeholder='Enter address' {...register('password')} />
-            {errors.address && (
-              <p className='text-red-500 text-sm'>{errors.password?.message}</p>
+            <label>Password *</label>
+            <Input
+              placeholder='Enter password'
+              type='password'
+              {...register('password')}
+            />
+            {errors.password && (
+              <p className='text-red-500 text-sm'>{errors.password.message}</p>
             )}
           </div>
 
@@ -157,12 +176,14 @@ const RegisterPage = () => {
             </div>
           </div>
 
-          <div className='flex justify-between'>
+          {/* Submit */}
+          <div className='flex justify-between items-center'>
             <button
               type='submit'
-              className='px-4 cursor-pointer  bg-red-600 text-white py-2 rounded hover:bg-red-700 transition'
+              className='px-4 cursor-pointer bg-red-600 text-white py-2 rounded hover:bg-red-700 transition'
+              disabled={mutation.isPending}
             >
-              Sign Up
+              {mutation.isPending ? 'Registering...' : 'Sign Up'}
             </button>
 
             <div className='text-center pt-2'>

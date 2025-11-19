@@ -10,17 +10,21 @@ import { IoCloseSharp, IoSearchOutline } from 'react-icons/io5';
 import { MdAccountCircle } from 'react-icons/md';
 import { LuShoppingCart } from 'react-icons/lu';
 import { CiHeart } from 'react-icons/ci';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { setSearchQuery } from '@/redux/feature/searchSlice';
+import { useMutation } from '@tanstack/react-query';
+import { logoutUser } from '@/lib/auth';
+import { toast } from 'react-toastify';
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const [query, stQuery] = useState<string>('');
+  const [query, setQuery] = useState<string>('');
+  const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const totalQuantity = useSelector((state: RootState) =>
     state.cart.items.reduce((total, item) => total + item.quantity, 0)
   );
@@ -95,6 +99,20 @@ const Navbar = () => {
       quantity: totalQuantity,
     },
   ];
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleDropdown = (name: string) => {
     setActiveDropdown(activeDropdown === name ? null : name);
@@ -102,7 +120,6 @@ const Navbar = () => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All Category');
-  const [searchTerm, setSearchTerm] = useState('');
 
   const handleCategorySelect = (category: string) => {
     setSelectedCategory(category);
@@ -112,14 +129,27 @@ const Navbar = () => {
   const handleSearch = () => {
     if (query.trim() !== '') {
       dispatch(setSearchQuery(query.trim()));
-      router.push(`/search?query=${query.trim()}`);
-      stQuery('');
+      router.push(`/products?search=${query.trim()}`);
+
+      setQuery('');
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleSearch();
   };
+
+  const logoutMutation = useMutation({
+    mutationFn: () => logoutUser(),
+    onSuccess: () => {
+      localStorage.removeItem('token');
+      toast.success('Logout successfully!');
+      router.push('/');
+    },
+    onError: () => {
+      toast.error('Logout failed!');
+    },
+  });
   return (
     <div className='w-[95%] md:w-[90%] lg:w-[80%] mx-auto'>
       <header className='flex justify-between items-center py-3'>
@@ -259,8 +289,8 @@ const Navbar = () => {
         <div className='flex items-center justify-between w-full md:w-[80%] md:max-w-md border bg-white border-[#E9E9E9] rounded-lg  relative'>
           <Input
             placeholder='Search for food, dishes...'
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             className='flex-1 border-none focus:ring-0 outline-none text-sm w-full'
           />
@@ -277,7 +307,7 @@ const Navbar = () => {
             </div>
             <button
               onClick={handleSearch}
-              className='bg-[#F53E32] px-3 sm:px-4 py-[9px] rounded-r flex items-center justify-center hover:opacity-90 transition'
+              className='bg-[#F53E32] cursor-pointer px-3 sm:px-4 py-[9px] rounded-r flex items-center justify-center hover:opacity-90 transition'
             >
               <IoSearchOutline size={18} className='text-white' />
             </button>
@@ -299,6 +329,41 @@ const Navbar = () => {
 
         <div className='flex items-center gap-4 sm:gap-6 justify-end md:justify-start'>
           {AuthSection.map((item) => {
+            if (item.name === 'Account') {
+              return (
+                <div key={item.link} className='relative' ref={dropdownRef}>
+                  <button
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    className='flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-[#F53E32] transition'
+                  >
+                    {item.icon}
+                    <span className='hidden md:block font-poppins text-[15px] tracking-[0.48px]'>
+                      {item.name}
+                    </span>
+                  </button>
+
+                  {isProfileOpen && (
+                    <div className='absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50'>
+                      <Link
+                        href='/account'
+                        className='block px-4 py-2 text-gray-700 hover:bg-gray-100'
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        Profile
+                      </Link>
+                      <button
+                        onClick={() => logoutMutation.mutate()}
+                        className='w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100'
+                        disabled={logoutMutation.isPending}
+                      >
+                        {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={item.link}
@@ -309,12 +374,7 @@ const Navbar = () => {
                 <span className='hidden md:block font-poppins text-[15px] tracking-[0.48px]'>
                   {item.name}
                 </span>
-                {item.name === 'Cart' && item?.quantity > 0 && (
-                  <span className='absolute -top-2 -right-1 md:-top-6 md:right-6 bg-[#F53E32] px-2 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center'>
-                    {item.quantity}
-                  </span>
-                )}
-                {item.name === 'Wishlist' && item?.quantity > 0 && (
+                {item.quantity && item.quantity > 0 && (
                   <span className='absolute -top-2 -right-1 md:-top-6 md:right-6 bg-[#F53E32] px-2 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center'>
                     {item.quantity}
                   </span>

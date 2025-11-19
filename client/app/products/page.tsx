@@ -14,6 +14,8 @@ import ProductSingleCard from './ProductSingleCard';
 import { BsGrid3X3Gap } from 'react-icons/bs';
 import { MdFilterAlt } from 'react-icons/md';
 import SectionHeader from '@/components/common/Breadcrumb';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 interface FilterState {
   categories: string[];
@@ -25,6 +27,8 @@ interface FilterState {
 
 const ProductCard = () => {
   const [sidebar, setSidebar] = useState<boolean>(false);
+  // const searchParms = useSearchParams();
+  // const search = searchParms.get('search')?.toLocaleLowerCase() || '';
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
     priceRange: [0, 500],
@@ -32,6 +36,9 @@ const ProductCard = () => {
     weights: [],
     tags: [],
   });
+
+  const searchParams = useSearchParams();
+  const search = searchParams.get('search')?.toLowerCase() || '';
 
   const filteredProducts = products.filter((product) => {
     const inCategory =
@@ -59,70 +66,91 @@ const ProductCard = () => {
         )
       );
 
-    return inCategory && inPrice && inColor && inWeight && inTag;
+    const inSearch =
+      search === '' ||
+      (product.title.toLowerCase().includes(search) ?? false) ||
+      (product.brand?.toLowerCase().includes(search) ?? false);
+
+    return inCategory && inPrice && inColor && inWeight && inTag && inSearch;
   });
+
   const handleSidebar = () => {
     setSidebar(!sidebar);
   };
   return (
     <div>
       <SectionHeader title='Shop' routeText='Home - Shop' />
-      <div className='max-w-[80%] mx-auto'>
-        <div
-          className={`grid  ${
-            sidebar ? 'grid-cols-[25%_72%] ' : 'grid-cols-1'
-          }`}
-        >
-          <div className=' h-fit sticky top-4'>
-            {sidebar && <ProductCategoryFilter onFilterChange={setFilters} />}
-          </div>
-          <div className='flex flex-col gap-2'>
-            <nav className='flex justify-between border p-1  border-gray-50 items-center rounded'>
-              <div className='flex items-center justify-center'>
-                <span>
-                  <MdFilterAlt
-                    onClick={handleSidebar}
-                    className={` ${sidebar ? 'text-red-500' : 'text-gray-300'}`}
-                  />
-                </span>
-                <span>
-                  <BsGrid3X3Gap
-                    onClick={() => setSidebar(!sidebar)}
-                    className={` ${
-                      sidebar ? 'text-black' : 'bg-red-500  text-xl text-white'
-                    } cursor-pointer`}
-                  />
-                </span>
-                <p className='text-gray-500 text-sm'>
-                  We found {filteredProducts.length} products for you
-                </p>
-              </div>
-              <div className='flex items-center gap-1 rounded border border-gray-50 p-1 text-sm text-gray-600 cursor-pointer'>
-                <p>Sort By:</p>
-                <span className='flex items-center gap-1 font-medium'>
-                  Featured <FaChevronDown className='text-gray-400' />
-                </span>
-              </div>
-            </nav>
+      {filteredProducts.length > 0 ? (
+        <div className='max-w-[80%] mx-auto'>
+          <div
+            className={`grid  ${
+              sidebar ? 'grid-cols-[25%_72%] ' : 'grid-cols-1'
+            }`}
+          >
+            <div className=' h-fit sticky top-4'>
+              {sidebar && <ProductCategoryFilter onFilterChange={setFilters} />}
+            </div>
+            <div className='flex flex-col gap-2'>
+              <nav className='flex justify-between border p-1  border-gray-50 items-center rounded'>
+                <div className='flex items-center justify-center'>
+                  <span>
+                    <MdFilterAlt
+                      onClick={handleSidebar}
+                      className={` ${
+                        sidebar ? 'text-red-500' : 'text-gray-300'
+                      }`}
+                    />
+                  </span>
+                  <span>
+                    <BsGrid3X3Gap
+                      onClick={() => setSidebar(!sidebar)}
+                      className={` ${
+                        sidebar
+                          ? 'text-black'
+                          : 'bg-red-500  text-xl text-white'
+                      } cursor-pointer`}
+                    />
+                  </span>
+                  <p className='text-gray-500 text-sm'>
+                    We found {filteredProducts.length} products for you
+                  </p>
+                </div>
+                <div className='flex items-center gap-1 rounded border border-gray-50 p-1 text-sm text-gray-600 cursor-pointer'>
+                  <p>Sort By:</p>
+                  <span className='flex items-center gap-1 font-medium'>
+                    Featured <FaChevronDown className='text-gray-400' />
+                  </span>
+                </div>
+              </nav>
 
-            <div
-              className={`grid  ${
-                sidebar ? 'lg:grid-cols-3' : 'lg:grid-cols-4'
-              } grid-cols-1 gap-4 `}
-            >
-              {filteredProducts.length > 0 ? (
-                filteredProducts.map((data) => (
-                  <ProductSingleCard product={data} key={data.id} />
-                ))
-              ) : (
-                <p className='text-gray-500 text-sm col-span-full text-center'>
-                  No products found matching the filters.
-                </p>
-              )}
+              <div
+                className={`grid  ${
+                  sidebar ? 'lg:grid-cols-3' : 'lg:grid-cols-4'
+                } grid-cols-1 gap-4 `}
+              >
+                {filteredProducts.length > 0 ? (
+                  filteredProducts.map((data) => (
+                    <ProductSingleCard product={data} key={data.id} />
+                  ))
+                ) : (
+                  <p className='text-gray-500 text-sm col-span-full text-center'>
+                    No products found matching the filters.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div>
+          <p className='text-gray-500 text-sm col-span-full text-center'>
+            No products found matching the filters.
+          </p>
+          <Link className='bg-red-600 px-6 py-2' href={'/'}>
+            Go Back
+          </Link>
+        </div>
+      )}
     </div>
   );
 };

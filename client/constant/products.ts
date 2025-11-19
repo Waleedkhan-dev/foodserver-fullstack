@@ -11,7 +11,7 @@ import product9 from '../public/product/product9.png';
 
 export interface ProductType {
   id?: number;
-  title?: string;
+  title: string;
   image?: StaticImageData;
   category?: string;
   brand?: string;
@@ -166,7 +166,7 @@ export const products: ProductType[] = [
     descriptionShort: 'Healthy veggie wrap with organic greens & mint flavor.',
     colors: ['#4CAF50', '#795548', '#9E9E9E'],
     sizes: ['Regular'],
-    gallery: [product1, product3, product4],
+    gallery: [product1, product3, product8],
     tags: ['recent', 'top-rated'],
     sizesAvailable: ['250ml', '500ml', '1L', '2L'],
     Review:
