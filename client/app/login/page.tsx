@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Fragment } from 'react/jsx-runtime';
 import SectionHeader from '@/components/common/Breadcrumb';
-import { userLogin } from '@/lib/auth';
+import { userLogin } from '@/lib/api/auth';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { useMutation } from '@tanstack/react-query';
@@ -38,8 +38,11 @@ const LoginSection = () => {
   const muatation = useMutation({
     mutationFn: (data: RegisterFormType) => userLogin(data),
     onSuccess: () => {
-      toast.success('Registered successfully!');
-      router.push('/');
+      toast.success('Login successfully!');
+      setTimeout(() => {
+        router.push('/');
+      }, 100);
+      console.log('Login successfully!');
     },
     onError: () => {
       toast.error('Registration failed or user already exists!');

@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { setSearchQuery } from '@/redux/feature/searchSlice';
 import { useMutation } from '@tanstack/react-query';
-import { logoutUser } from '@/lib/auth';
+import { logoutUser } from '@/lib/api/auth';
 import { toast } from 'react-toastify';
 
 const Navbar = () => {

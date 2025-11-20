@@ -12,7 +12,7 @@ import { toast } from 'react-toastify';
 import Input from '@/components/Input';
 import SectionHeader from '@/components/common/Breadcrumb';
 import registerImage from '../../public/imges/register.png';
-import { registerUser, RegisterPayload } from '@/lib/auth';
+import { registerUser, RegisterPayload } from '@/lib/api/auth';
 import { useRouter } from 'next/navigation';
 
 const RegisterSchema = z.object({

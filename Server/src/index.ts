@@ -9,11 +9,13 @@ import cookieParser from 'cookie-parser';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-app.use(cors());
+
 app.use(
   cors({
-    origin: 'http://localhost:3000', // your frontend
-    credentials: true, // allow cookies to be sent
+    origin: 'http://localhost:3000',
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   })
 );
 

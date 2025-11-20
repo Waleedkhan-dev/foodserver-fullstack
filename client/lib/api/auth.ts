@@ -16,6 +16,7 @@ const URL = 'http://localhost:5000';
 export async function registerUser(payload: RegisterPayload) {
   const res = await fetch(`${URL}/api/auth/register`, {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
@@ -30,6 +31,7 @@ export async function registerUser(payload: RegisterPayload) {
 export async function userLogin(payload: { email: string; password: string }) {
   const res = await fetch(`${URL}/api/auth/login`, {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
