@@ -4,6 +4,7 @@ import {
   registerUser,
   userLogin,
 } from '../controllers/auth.controller';
+import { createProduct } from '../controllers/product.controller';
 
 const router = Router();
 
