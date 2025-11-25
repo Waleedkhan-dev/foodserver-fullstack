@@ -25,12 +25,21 @@ const AddToCart = async (req: Request, res: Response) => {
 };
 
 const increateQuantity = async (req: Request, res: Response) => {
-  const { userId, productId } = req.body;
+  const { userId, product } = req.body;
+  console.log('productId', product);
+  console.log('FULL BODY:', req.body);
+
   const cart = await cartModel.findOne({ userId });
+  console.log('cart', cart);
+
   if (!cart) {
     return res.status(404).json({ message: 'cart Not found' });
   }
-  const item = cart.items.find((item) => item.product.id === productId);
+  console.log('cart', cart);
+  // console.log(items);
+
+  const item = cart.items?.find((item) => item.product.id === product.id);
+
   if (!item) {
     return res.status(404).json({ message: 'item not found' });
   }
@@ -42,14 +51,14 @@ const increateQuantity = async (req: Request, res: Response) => {
 };
 
 const decreaseQuantity = async (req: Request, res: Response) => {
-  const { userId, productId } = req.body;
+  const { userId, product } = req.body;
   const cart = await cartModel.findOne({ userId });
   if (!cart) {
     return res.status(404).json({ message: 'cart Not found' });
   }
 
   const itemIndex = cart.items.findIndex(
-    (item) => item.product.id === productId
+    (item) => item.product.id === product.id
   );
   if (itemIndex === -1) {
     return res.status(404).json({ message: 'item not found' });
@@ -64,18 +73,17 @@ const decreaseQuantity = async (req: Request, res: Response) => {
   res.json({
     success: true,
     message: 'Product quantity decrease',
-    cart,
   });
 };
 
 const removeItem = async (req: Request, res: Response) => {
-  const { userId, productId } = req.body;
+  const { userId, product } = req.body;
   const cart = await cartModel.findOne({ userId });
   if (!cart) {
     return res.status(404).json({ message: 'cart not found' });
   }
   const itemIndex = cart.items.findIndex(
-    (item) => item.product.id === productId
+    (item) => item.product.id === product.id
   );
 
   if (itemIndex === -1) {
