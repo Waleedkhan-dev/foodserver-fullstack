@@ -3,6 +3,7 @@ import {
   AddToCart,
   decreaseQuantity,
   increateQuantity,
+  removeItem,
 } from '../controllers/cart.Controller';
 
 const router = Router();
@@ -10,6 +11,6 @@ const router = Router();
 router.post('/add-to-cart', AddToCart);
 router.put('/increase-quantity', increateQuantity);
 router.put('/decrease-quantity', decreaseQuantity);
-router.delete('/', () => {});
+router.delete('/', removeItem);
 
 export default router;
