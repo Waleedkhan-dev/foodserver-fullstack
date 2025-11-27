@@ -36,7 +36,6 @@ const increateQuantity = async (req: Request, res: Response) => {
     return res.status(404).json({ message: 'cart Not found' });
   }
   console.log('cart', cart);
-  // console.log(items);
 
   const item = cart.items?.find((item) => item.product.id === product.id);
 
